@@ -1,0 +1,70 @@
+{
+  "type": "vehicle",
+  "id": "vehicle.carlasad.tractor",
+  "base_class": "CarlaSadTractorVehicle",
+  "blueprint_name": "BP_CarlaSadTractor",
+  "tags": ["tractor", "agricultural", "carlasad"],
+
+  "dimensions": {
+    "length_m": 4.2,
+    "width_m":  2.4,
+    "height_m": 2.8,
+    "wheelbase_m": 2.5,
+    "front_track_m": 1.85,
+    "rear_track_m":  2.10,
+    "mass_kg": 4500
+  },
+
+  "wheels": {
+    "front_left":  { "radius_cm": 52, "width_cm": 28, "damping_rate": 0.25, "max_steer_angle": 35.0 },
+    "front_right": { "radius_cm": 52, "width_cm": 28, "damping_rate": 0.25, "max_steer_angle": 35.0 },
+    "rear_left":   { "radius_cm": 78, "width_cm": 45, "damping_rate": 0.25, "max_steer_angle": 0.0 },
+    "rear_right":  { "radius_cm": 78, "width_cm": 45, "damping_rate": 0.25, "max_steer_angle": 0.0 }
+  },
+
+  "engine": {
+    "max_rpm": 2400,
+    "moi": 1.5,
+    "damping_rate_full_throttle": 0.15,
+    "damping_rate_zero_throttle_clutch_engaged": 2.0,
+    "damping_rate_zero_throttle_clutch_disengaged": 0.35
+  },
+
+  "transmission": {
+    "use_gear_auto_box": true,
+    "gear_switch_time": 0.5,
+    "gear_auto_box_latency": 1.0,
+    "final_ratio": 6.5,
+    "forward_gears": [
+      { "ratio": 4.60, "up_ratio": 0.55, "down_ratio": 0.30 },
+      { "ratio": 2.80, "up_ratio": 0.65, "down_ratio": 0.35 },
+      { "ratio": 1.76, "up_ratio": 0.70, "down_ratio": 0.40 },
+      { "ratio": 1.20, "up_ratio": 0.75, "down_ratio": 0.45 },
+      { "ratio": 0.88, "up_ratio": 0.80, "down_ratio": 0.50 },
+      { "ratio": 0.65, "up_ratio": 0.99, "down_ratio": 0.60 }
+    ]
+  },
+
+  "steering_curve": [
+    { "speed_kmh":  0, "steer_amount": 1.00 },
+    { "speed_kmh": 10, "steer_amount": 0.90 },
+    { "speed_kmh": 20, "steer_amount": 0.75 },
+    { "speed_kmh": 30, "steer_amount": 0.55 }
+  ],
+
+  "physics": {
+    "drag_coefficient": 0.65,
+    "center_of_mass_offset_z_cm": -20.0
+  },
+
+  "implement_attach": {
+    "location_cm": [-280, 0, 30],
+    "max_lift_angle_deg": 30.0,
+    "pto_rpm": 540
+  },
+
+  "sensor_rig_offset": {
+    "comment": "All sensor transforms in base_link frame (meters)",
+    "base_link_z_m": 1.2
+  }
+}

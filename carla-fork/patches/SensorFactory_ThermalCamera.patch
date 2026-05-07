@@ -1,0 +1,26 @@
+--- a/Unreal/CarlaUE4/Plugins/Carla/Source/Carla/Sensor/SensorFactory.cpp
++++ b/Unreal/CarlaUE4/Plugins/Carla/Source/Carla/Sensor/SensorFactory.cpp
+@@ -1,6 +1,7 @@
+ // Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma
+ // de Barcelona (UAB).
+ //
++// CarlaSad: added ThermalCamera registration
+ // This work is licensed under the terms of the MIT license.
+ // For a copy, see <https://opensource.org/licenses/MIT>.
+
+@@ -20,6 +21,7 @@
+ #include "Carla/Sensor/RayCastLidar.h"
+ #include "Carla/Sensor/RayCastSemanticLidar.h"
+ #include "Carla/Sensor/SemanticSegmentationCamera.h"
++#include "Carla/Sensor/ThermalCamera.h"
+ #include "Carla/Sensor/WorldObserver.h"
+
+ #include <compiler/disable-ue4-macros.h>
+@@ -63,6 +65,7 @@ TArray<FActorDefinition> ASensorFactory::GetDefinitions()
+   Definitions.Append(MakeDefinitions<ARayCastLidar>());
+   Definitions.Append(MakeDefinitions<ARayCastSemanticLidar>());
+   Definitions.Append(MakeDefinitions<ASemanticSegmentationCamera>());
++  Definitions.Append(MakeDefinitions<AThermalCamera>());       // CarlaSad
+   Definitions.Append(MakeDefinitions<AWorldObserver>());
+   return Definitions;
+ }
