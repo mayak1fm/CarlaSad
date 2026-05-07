@@ -1,0 +1,22 @@
+scene_id: field_cloudy
+name: Overcast field
+description: Agricultural field under heavy cloud cover, diffuse lighting, no hard shadows
+terrain_class: wet_field   # label_id=101
+weather_preset: CloudyNoon
+
+lighting:
+  sun_elevation_deg: 50
+  sun_azimuth_deg: 170
+  ambient_intensity: 0.70
+  sky_luminance: 0.60
+  cast_shadows: true
+  shadow_softness: 12.0
+
+terrain:
+  type: flat_field
+  moisture: 0.4
+  roughness: 0.35
+
+valid_object_classes: [person, tractor, pole, rock, bush, bag, machinery]
+placement_bounds: {x_min: -50.0, x_max: 50.0, y_min: -50.0, y_max: 50.0}
+background_splat: splats/field_cloudy.ply

@@ -1,0 +1,39 @@
+scene_id: field_swamp
+name: Swampy field area
+description: Waterlogged terrain with standing water, soft ground, typical mochak/swamp areas
+terrain_class: swamp   # label_id=102
+weather_preset: CloudyNoon
+time_of_day: noon
+season: spring
+
+lighting:
+  sun_elevation_deg: 45
+  sun_azimuth_deg: 200
+  ambient_intensity: 0.65
+  sky_luminance: 0.55
+  cast_shadows: true
+  shadow_softness: 8.0     # overcast = soft shadows
+
+terrain:
+  type: swamp
+  moisture: 0.95
+  has_standing_water: true
+  water_depth_range: [0.0, 0.3]
+  roughness: 0.6
+
+valid_object_classes:
+  - person
+  - pole
+  - rock
+  - bush
+
+placement_bounds:
+  x_min: -30.0
+  x_max:  30.0
+  y_min: -30.0
+  y_max:  30.0
+
+background_splat: splats/field_swamp.ply
+placement_constraints:
+  avoid_water_for: [tractor, machinery, bag]
+  allow_partial_submersion: [rock, bush]

@@ -1,0 +1,50 @@
+class_id: 0
+class_name: person
+semantic_category: person
+description: Adult human in field work clothing
+
+canonical_scale: [0.5, 0.4, 1.75]    # width, depth, height in meters
+anchor_point: [0.0, 0.0, 0.0]        # ground center (feet)
+mass_kg: 75.0
+
+proxy_mesh: proxy/person_capsule.obj
+convex_hull: proxy/person_hull.obj
+oriented_bbox:
+  center: [0.0, 0.0, 0.875]
+  size:   [0.5, 0.4, 1.75]
+  rotation: [0.0, 0.0, 0.0]
+
+support_polygon:
+  - [-0.2, -0.15]
+  - [ 0.2, -0.15]
+  - [ 0.2,  0.15]
+  - [-0.2,  0.15]
+
+placement_rules:
+  terrain_classes_allowed: [100, 101, 104, 106, 110, 111, 112, 113]
+  min_slope_deg: 0
+  max_slope_deg: 30
+  allow_partial_overlap: false
+  terrain_snap: true              # anchor to ground height
+
+pose_variations:
+  - id: standing_idle
+    description: Standing still, arms at sides
+    keypoints: proxy/poses/standing_idle.json
+  - id: walking
+    description: Mid-stride walking pose
+    keypoints: proxy/poses/walking.json
+  - id: bending
+    description: Bending forward (working)
+    keypoints: proxy/poses/bending.json
+
+assets:
+  - id: person_01
+    splat: splats/person_01.ply
+    texture_hint: work_clothes_blue
+  - id: person_02
+    splat: splats/person_02.ply
+    texture_hint: work_clothes_orange
+  - id: person_03
+    splat: splats/person_03.ply
+    texture_hint: work_clothes_green

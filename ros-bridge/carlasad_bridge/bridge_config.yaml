@@ -1,0 +1,37 @@
+carlasad_bridge:
+  ros__parameters:
+    carla_host: "localhost"
+    carla_port: 2000
+    sync_mode: false
+    fixed_delta: 0.05
+
+    # Sensor rig profile to use (default | minimal)
+    sensor_rig: "default"
+
+    # Publish rates (Hz) — 0 = publish on every CARLA callback
+    camera_rate: 0        # 20 Hz from sensor_tick
+    lidar_rate: 0         # 20 Hz from sensor_tick
+    gnss_rate: 0          # 10 Hz from sensor_tick
+    imu_rate: 0           # 50 Hz from sensor_tick
+    gt_rate: 20           # Ground truth publish rate
+    process_rate: 1       # Process layer publish rate
+
+    # Ground truth flags
+    publish_gt_semantic: true
+    publish_gt_instance: true
+    publish_gt_depth: true
+    publish_gt_objects: true
+
+    # Process layer flags
+    publish_worked_map: true
+    publish_worked_edge: true
+    publish_field_boundary: true
+    publish_terrain_classes: true
+    publish_risk_map: false     # computed, more expensive
+
+    # TF
+    publish_tf: true
+    publish_tf_static: true
+    map_frame: "map"
+    odom_frame: "odom"
+    base_link_frame: "base_link"

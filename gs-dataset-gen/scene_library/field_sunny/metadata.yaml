@@ -1,0 +1,45 @@
+scene_id: field_sunny
+name: Clear sunny field — midday
+description: Open agricultural field, dry soil, sparse vegetation, clear sky noon lighting
+terrain_class: normal_field  # label_id=100
+weather_preset: ClearNoon
+time_of_day: noon
+season: summer
+
+lighting:
+  sun_elevation_deg: 65
+  sun_azimuth_deg: 180
+  ambient_intensity: 0.4
+  sky_luminance: 0.85
+  cast_shadows: true
+  shadow_softness: 2.0
+
+terrain:
+  type: flat_field
+  heightmap: heightmaps/field_flat.exr      # optional, relative to scene dir
+  texture: textures/dry_soil_summer.jpg     # background appearance
+  roughness: 0.3
+  moisture: 0.05
+  normal_map: textures/field_normal.png
+
+valid_object_classes:
+  - person
+  - tractor
+  - pole
+  - rock
+  - bush
+  - bag
+  - machinery
+
+placement_bounds:
+  x_min: -50.0
+  x_max:  50.0
+  y_min: -50.0
+  y_max:  50.0
+
+background_splat: splats/field_sunny.ply    # path to .ply GS file (not committed)
+camera_presets:
+  - name: front_view
+    fov: 90
+    height: 2.2
+    pitch_deg: -5

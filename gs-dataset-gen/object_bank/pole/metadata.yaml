@@ -1,0 +1,32 @@
+class_id: 2
+class_name: pole
+semantic_category: static_obstacle
+description: Wooden or metal field pole (fence post, utility pole)
+
+canonical_scale: [0.15, 0.15, 2.5]
+anchor_point: [0.0, 0.0, 0.0]
+
+proxy_mesh: proxy/pole_cylinder.obj
+convex_hull: proxy/pole_hull.obj
+oriented_bbox:
+  center: [0.0, 0.0, 1.25]
+  size:   [0.15, 0.15, 2.5]
+  rotation: [0.0, 0.0, 0.0]
+
+support_polygon:
+  - [-0.08, -0.08]
+  - [ 0.08, -0.08]
+  - [ 0.08,  0.08]
+  - [-0.08,  0.08]
+
+placement_rules:
+  terrain_classes_allowed: [100, 101, 104, 105, 106]
+  terrain_snap: true
+  allow_partial_overlap: false
+  min_clearance_m: 0.5
+
+assets:
+  - id: pole_wood
+    splat: splats/pole_wood.ply
+  - id: pole_metal
+    splat: splats/pole_metal.ply

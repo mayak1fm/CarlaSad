@@ -1,0 +1,37 @@
+class_id: 1
+class_name: tractor
+semantic_category: farm_vehicle
+description: Agricultural tractor (parked or slow-moving)
+
+canonical_scale: [2.5, 4.5, 3.2]   # width, depth, height in meters
+anchor_point: [0.0, 0.0, 0.0]      # ground center
+mass_kg: 6000.0
+
+proxy_mesh: proxy/tractor_box.obj
+convex_hull: proxy/tractor_hull.obj
+oriented_bbox:
+  center: [0.0, 0.0, 1.6]
+  size:   [2.5, 4.5, 3.2]
+  rotation: [0.0, 0.0, 0.0]
+
+support_polygon:
+  - [-1.2, -2.0]
+  - [ 1.2, -2.0]
+  - [ 1.2,  2.0]
+  - [-1.2,  2.0]
+
+placement_rules:
+  terrain_classes_allowed: [100, 101, 104, 106, 110, 111]
+  min_slope_deg: 0
+  max_slope_deg: 15
+  allow_partial_overlap: false
+  terrain_snap: true
+  min_clearance_m: 3.0       # minimum distance from other large objects
+
+assets:
+  - id: tractor_john_deere
+    splat: splats/tractor_jd.ply
+    texture_hint: green_yellow
+  - id: tractor_case
+    splat: splats/tractor_case.ply
+    texture_hint: red_black
