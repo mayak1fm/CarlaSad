@@ -1,0 +1,31 @@
+scenario_id: dataset_recording
+name: Dataset Recording — deterministic dataset collection run
+map: CarlaSad/Field_Main
+world_mode: editor
+weather: ClearNoon
+seed: 1337
+duration_seconds: 600
+
+actors:
+  - type: tractor
+    spawn: { x: 0, y: 0, z: 0.5, yaw: 0 }
+    behavior: coverage_pattern
+    pattern: boustrophedon
+    speed: 3.0
+
+  - type: person
+    spawn: { x: 50, y: 20, z: 0, yaw: 0 }
+    behavior: scripted_walk
+    waypoints:
+      - { x: 50, y: 20 }
+      - { x: 40, y: 20 }
+      - { x: 40, y: 30 }
+
+logging:
+  mode: dataset_recording
+  rosbag: true
+  ground_truth: full
+  manifests: true
+
+sync_mode: true
+fixed_delta_seconds: 0.05

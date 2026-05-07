@@ -1,0 +1,40 @@
+name: carlasad
+
+# Dev overrides: hot reload, source mounts, debug ports
+
+services:
+
+  carla-runtime:
+    environment:
+      CARLA_DEBUG: "1"
+
+  ros2-bridge:
+    volumes:
+      - ./ros-bridge:/workspace/ros-bridge  # live source mount
+    command: >
+      bash -c "
+        source /opt/ros/humble/setup.bash &&
+        colcon build --symlink-install --packages-select carlasad_bridge &&
+        source install/setup.bash &&
+        ros2 launch carlasad_bridge bridge.launch.py log_level:=debug
+      "
+
+  api-backend:
+    volumes:
+      - ./api-backend:/app  # live source mount
+    command: uvicorn main:app --host 0.0.0.0 --port 8080 --reload
+    environment:
+      DEBUG: "1"
+      LOG_LEVEL: debug
+
+  dataset-gen:
+    volumes:
+      - ./gs-dataset-gen:/workspace/gs-dataset-gen  # live source mount
+    environment:
+      DEBUG: "1"
+
+  tools:
+    volumes:
+      - ./carla-fork/PythonAPI:/workspace/PythonAPI  # live source mount
+      - ./scenarios:/scenarios
+      - carla-logs:/logs

@@ -1,0 +1,45 @@
+{
+  "name": "CarlaSad Dev",
+  "dockerComposeFile": ["../docker-compose.yml", "../docker-compose.dev.yml"],
+  "service": "tools",
+  "workspaceFolder": "/home/mayakfm/dev/CarlaSad",
+  "shutdownAction": "stopCompose",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.10"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-vscode.cpptools",
+        "ms-azuretools.vscode-docker",
+        "redhat.vscode-yaml",
+        "ms-iot.vscode-ros"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/bin/python3",
+        "editor.formatOnSave": true,
+        "python.formatting.provider": "black",
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/*.pyc": true
+        }
+      }
+    }
+  },
+  "remoteEnv": {
+    "CARLA_HOST": "carla-runtime",
+    "CARLA_PORT": "2000",
+    "ROS_DOMAIN_ID": "0"
+  },
+  "mounts": [
+    "source=${localWorkspaceFolder}/logs,target=/logs,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/datasets,target=/datasets,type=bind,consistency=cached"
+  ],
+  "postCreateCommand": "pip install -e /workspace/carlasad 2>/dev/null || true",
+  "forwardPorts": [2000, 8080, 50051]
+}

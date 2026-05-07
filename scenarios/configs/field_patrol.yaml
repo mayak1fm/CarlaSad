@@ -1,0 +1,27 @@
+scenario_id: field_patrol
+name: Field Patrol — basic tractor patrol of a field
+map: CarlaSad/Field_Main
+world_mode: editor
+weather: ClearNoon
+seed: 42
+duration_seconds: 300
+
+actors:
+  - type: tractor
+    spawn: { x: 0, y: 0, z: 0.5, yaw: 0 }
+    behavior: patrol_route
+    route_id: patrol_basic
+
+  - type: person
+    spawn: { x: 30, y: 10, z: 0, yaw: 180 }
+    behavior: random_walk
+    speed: 1.2
+
+logging:
+  mode: online_debug
+  rosbag: false
+
+acceptance_criteria:
+  - tractor completes at least 1 patrol lap
+  - no collision with person
+  - all sensor topics publishing at expected rates

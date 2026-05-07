@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mcp-carla"
+version = "0.1.0"
+description = "MCP server for CARLA simulator (CarlaSad project)"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.0.0",
+    "carla>=0.9.15",
+]
+
+[project.scripts]
+mcp-carla = "server:mcp.run"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]

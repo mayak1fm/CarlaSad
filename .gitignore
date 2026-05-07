@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+venv/
+.venv/
+env/
+
+# Datasets and logs (large binary)
+datasets/*/rgb/
+datasets/*/depth/
+datasets/*/semantic/
+datasets/*/instance/
+logs/*/rosbag2/
+logs/.claude_sessions.log
+
+# Keep manifests
+!datasets/*/manifest.json
+!logs/*/manifest.json
+
+# CARLA build artifacts
+carla-fork/Build/
+carla-fork/Dist/
+carla-fork/*.egg
+carla-fork/PythonAPI/carla/dist/
+
+# Unreal Engine
+*.uasset
+*.umap
+Saved/
+Intermediate/
+DerivedDataCache/
+.idea/
+*.xcworkspace
+
+# ROS2
+ros-bridge/build/
+ros-bridge/install/
+ros-bridge/log/
+
+# Docker
+.docker/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+*.pem
+*.key
+secrets/
+
+# Large model files
+*.ply
+*.splat
+*.bin
+*.pt
+*.pth
+!carla-fork/PythonAPI/carlasad/**/*.py

@@ -1,0 +1,172 @@
+name: carlasad
+
+x-carla-env: &carla-env
+  CARLA_HOST: carla-runtime
+  CARLA_PORT: "2000"
+
+x-gpu: &gpu
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: 1
+            capabilities: [gpu]
+
+services:
+
+  # ── CARLA Runtime ──────────────────────────────────────────────────────
+  carla-runtime:
+    build:
+      context: docker/carla-runtime
+      dockerfile: Dockerfile
+    image: carlasad/carla-runtime:0.9.15
+    container_name: carlasad-carla
+    profiles: [runtime, dev, full]
+    <<: *gpu
+    environment:
+      DISPLAY: ${DISPLAY:-:0}
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: all
+    ports:
+      - "2000:2000"   # CARLA server
+      - "2001:2001"   # CARLA streaming
+      - "2002:2002"   # CARLA secondary
+    volumes:
+      - ./maps:/home/carla/CarlaUE4/Content/CarlaSad/Maps:ro
+      - carla-logs:/logs
+    command: >
+      /bin/sh -c "
+        if [ '${HEADLESS:-true}' = 'true' ]; then
+          /bin/bash CarlaUE4.sh -RenderOffScreen -nosound -carla-server -world-port=2000
+        else
+          /bin/bash CarlaUE4.sh -nosound -carla-server -world-port=2000
+        fi
+      "
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2000"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    restart: unless-stopped
+
+  # ── ROS2 Bridge ────────────────────────────────────────────────────────
+  ros2-bridge:
+    build:
+      context: docker/ros2-bridge-dev
+      dockerfile: Dockerfile
+    image: carlasad/ros2-bridge:latest
+    container_name: carlasad-bridge
+    profiles: [runtime, dev, ros, full]
+    environment:
+      <<: *carla-env
+      ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-0}
+    depends_on:
+      carla-runtime:
+        condition: service_healthy
+    volumes:
+      - ./ros-bridge:/workspace/ros-bridge
+      - ./maps:/maps:ro
+      - carla-logs:/logs
+    network_mode: host
+    command: >
+      bash -c "
+        source /opt/ros/humble/setup.bash &&
+        source /workspace/ros-bridge/install/setup.bash &&
+        ros2 launch carlasad_bridge bridge.launch.py
+      "
+    restart: unless-stopped
+
+  # ── API Backend ────────────────────────────────────────────────────────
+  api-backend:
+    build:
+      context: docker/api-backend-dev
+      dockerfile: Dockerfile
+    image: carlasad/api-backend:latest
+    container_name: carlasad-api
+    profiles: [runtime, dev, api, full]
+    environment:
+      <<: *carla-env
+      API_HOST: "0.0.0.0"
+      API_PORT: "8080"
+      LOG_DIR: /logs
+    ports:
+      - "8080:8080"   # REST + WebSocket
+      - "50051:50051" # gRPC
+    volumes:
+      - ./api-backend:/app
+      - carla-logs:/logs
+      - ./maps:/maps:ro
+    command: uvicorn main:app --host 0.0.0.0 --port 8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Dataset Generator ──────────────────────────────────────────────────
+  dataset-gen:
+    build:
+      context: docker/dataset-gen-dev
+      dockerfile: Dockerfile
+    image: carlasad/dataset-gen:latest
+    container_name: carlasad-dataset-gen
+    profiles: [dataset-gen, full]
+    <<: *gpu
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+    volumes:
+      - ./gs-dataset-gen:/workspace/gs-dataset-gen
+      - ./datasets:/datasets
+      - ./maps:/maps:ro
+    working_dir: /workspace/gs-dataset-gen
+    command: echo "Dataset gen container ready. Run pipeline.py manually."
+
+  # ── Reconstruction Tools ───────────────────────────────────────────────
+  reconstruction:
+    build:
+      context: docker/reconstruction-dev
+      dockerfile: Dockerfile
+    image: carlasad/reconstruction:latest
+    container_name: carlasad-reconstruction
+    profiles: [reconstruction]
+    <<: *gpu
+    volumes:
+      - ./tools/reconstruction:/workspace/reconstruction
+      - ./maps:/maps
+      - reconstruction-data:/data
+    working_dir: /workspace/reconstruction
+    command: echo "Reconstruction container ready."
+
+  # ── Tools (replay, tests, etc.) ────────────────────────────────────────
+  tools:
+    build:
+      context: docker/tools-dev
+      dockerfile: Dockerfile
+    image: carlasad/tools:latest
+    container_name: carlasad-tools
+    profiles: [tools, replay, full]
+    environment:
+      <<: *carla-env
+    volumes:
+      - ./carla-fork/PythonAPI:/workspace/PythonAPI
+      - ./scenarios:/scenarios
+      - carla-logs:/logs
+      - ./datasets:/datasets
+    working_dir: /workspace
+    command: echo "Tools container ready."
+
+volumes:
+  carla-logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./logs
+  reconstruction-data:
+
+networks:
+  default:
+    name: carlasad-net

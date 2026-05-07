@@ -1,0 +1,71 @@
+{
+  "mcpServers": {
+    "carla": {
+      "command": "python",
+      "args": ["/home/mayakfm/dev/CarlaSad/tools/mcp-carla/server.py"],
+      "env": {
+        "CARLA_HOST": "localhost",
+        "CARLA_PORT": "2000",
+        "CARLA_TIMEOUT": "10.0"
+      }
+    }
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(docker *)",
+      "Bash(docker compose *)",
+      "Bash(docker-compose *)",
+      "Bash(python *)",
+      "Bash(python3 *)",
+      "Bash(pip *)",
+      "Bash(ros2 *)",
+      "Bash(colcon *)",
+      "Bash(pytest *)",
+      "Bash(find /home/mayakfm/dev/CarlaSad *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(grep *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(chmod *)",
+      "Bash(yaml *)",
+      "Bash(jq *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'rm -rf|drop table|DELETE FROM|format c:'; then echo 'BLOCKED: destructive command'; exit 1; fi"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(echo \"$CLAUDE_TOOL_OUTPUT\" | grep -oP '(?<=at: ).*' | head -1); if [[ \"$FILE\" == *.py ]]; then python3 -m py_compile \"$FILE\" 2>&1 && echo \"[py_compile OK] $FILE\" || echo \"[py_compile FAIL] $FILE\"; fi"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"[CarlaSad] Session ended at $(date)\" >> /home/mayakfm/dev/CarlaSad/logs/.claude_sessions.log 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
