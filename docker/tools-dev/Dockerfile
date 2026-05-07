@@ -1,6 +1,7 @@
 FROM python:3.10-slim
 
-# CarlaSad tools container: replay, tests, scenario runner
+# Build context: project root
+# CarlaSad tools: replay, tests, scenario runner
 
 RUN apt-get update && apt-get install -y \
     netcat-openbsd \
@@ -8,16 +9,14 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /workspace
 
-# CARLA Python API
-ARG CARLA_VERSION=0.9.15
-RUN pip install carla==${CARLA_VERSION} || true
-
-RUN pip install \
+RUN pip install --no-cache-dir \
     pytest \
     pytest-asyncio \
+    pytest-cov \
     pyyaml \
     numpy \
     mcp
 
+# CarlaSad Python package (carla dep optional — egg mounted at runtime)
 COPY carla-fork/PythonAPI/carlasad /workspace/carlasad
-RUN pip install -e /workspace/carlasad || true
+RUN pip install --no-cache-dir -e /workspace/carlasad

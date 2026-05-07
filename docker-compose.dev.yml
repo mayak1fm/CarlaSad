@@ -1,6 +1,6 @@
 name: carlasad
 
-# Dev overrides: hot reload, source mounts, debug ports
+# Dev overrides: hot reload, source mounts, debug logging
 
 services:
 
@@ -10,31 +10,41 @@ services:
 
   ros2-bridge:
     volumes:
-      - ./ros-bridge:/workspace/ros-bridge  # live source mount
+      - ./ros-bridge:/workspace/ros-bridge
+      - ./carla-fork/PythonAPI/carlasad:/opt/carlasad
     command: >
       bash -c "
         source /opt/ros/humble/setup.bash &&
-        colcon build --symlink-install --packages-select carlasad_bridge &&
+        if [ -d /carla-python-api ]; then
+          export PYTHONPATH=/carla-python-api:$$PYTHONPATH; fi &&
+        cd /workspace/ros-bridge &&
+        colcon build --symlink-install &&
         source install/setup.bash &&
         ros2 launch carlasad_bridge bridge.launch.py log_level:=debug
       "
 
   api-backend:
     volumes:
-      - ./api-backend:/app  # live source mount
-    command: uvicorn main:app --host 0.0.0.0 --port 8080 --reload
+      - ./api-backend:/app
+      - ./carla-fork/PythonAPI/carlasad:/opt/carlasad_src
+    command: >
+      bash -c "
+        if ls /carla-python-api/*.egg 2>/dev/null; then
+          export PYTHONPATH=/carla-python-api:$$PYTHONPATH; fi &&
+        uvicorn main:app --host 0.0.0.0 --port 8080 --reload
+      "
     environment:
       DEBUG: "1"
       LOG_LEVEL: debug
 
   dataset-gen:
     volumes:
-      - ./gs-dataset-gen:/workspace/gs-dataset-gen  # live source mount
+      - ./gs-dataset-gen:/workspace/gs-dataset-gen
     environment:
       DEBUG: "1"
 
   tools:
     volumes:
-      - ./carla-fork/PythonAPI:/workspace/PythonAPI  # live source mount
+      - ./carla-fork/PythonAPI:/workspace/PythonAPI
       - ./scenarios:/scenarios
-      - carla-logs:/logs
+      - ./logs:/logs

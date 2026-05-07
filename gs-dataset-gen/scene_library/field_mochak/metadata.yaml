@@ -1,0 +1,47 @@
+name: field_mochak
+description: Mochak terrain — waterlogged depression with rushes, very high traversal risk
+terrain_class: mochak
+semantic_id: 103
+
+weather_preset: WetCloudy
+lighting:
+  sun_elevation_deg: 32.0
+  sun_azimuth_deg: 185.0
+  sun_intensity: 0.45
+  ambient_intensity: 0.55
+  sky_luminance: 0.5
+  color_temperature_k: 6200
+
+terrain:
+  surface_type: waterlogged
+  roughness: 0.35
+  moisture: 0.95          # near saturation
+  water_sheen: true
+  albedo_mean: [0.10, 0.14, 0.08]
+  normal_variation: 0.08   # flat, boggy surface
+
+background_splat: splats/field_mochak_wet.ply
+
+placement_bounds:
+  x_min: -10.0
+  x_max:  10.0
+  y_min:   3.0
+  y_max:  20.0
+  z_ref:   0.0
+
+valid_object_classes:
+  - person
+  - rock
+  - bush
+
+placement_rules:
+  min_object_spacing: 3.0
+  avoid_terrain_classes: []
+  z_snap: heightmap
+  occlusion_policy: partial_ok
+  sink_depth_max: 0.12    # objects sink into wet ground
+
+augmentation:
+  hflip_prob: 0.5
+  rotation_deg_range: [-5, 5]
+  scale_jitter: 0.06

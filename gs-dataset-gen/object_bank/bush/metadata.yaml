@@ -1,0 +1,48 @@
+name: bush
+class_id: 11
+description: Low shrub / brush, common at field edges and ditches
+
+canonical_scale:
+  width_m:  1.2
+  depth_m:  1.0
+  height_m: 0.8
+
+anchor_point: base_center    # sits on terrain surface
+
+proxy_mesh: proxy/bush_convex.obj
+convex_hull: proxy/bush_convex_hull.obj
+oriented_bbox:
+  half_extents: [0.60, 0.50, 0.40]
+  rotation_deg: [0, 0, 0]
+
+support_polygon:
+  type: ellipse
+  rx: 0.55
+  ry: 0.45
+
+placement_rules:
+  valid_terrain_classes: [100, 101, 104, 105, 110, 111]
+  invalid_terrain_classes: [108]
+  slope_max_deg: 20
+  float_tolerance_m: 0.05
+  sink_tolerance_m: 0.08
+  min_clearance_m: 0.8
+
+assets:
+  - id: bush_green_01
+    ply: renders/bush_green_01.ply
+    normal_map: normals/bush_green_01.png
+    depth_map: depth/bush_green_01.png
+    alpha_mask: masks/bush_green_01.png
+    views: [front, left, right, front_left, front_right]
+    scale_variance: 0.15
+  - id: bush_dry_01
+    ply: renders/bush_dry_01.ply
+    normal_map: normals/bush_dry_01.png
+    depth_map: depth/bush_dry_01.png
+    alpha_mask: masks/bush_dry_01.png
+    views: [front, left, right]
+    scale_variance: 0.18
+
+emissivity: 0.96
+thermal_temp_offset_k: -2.0   # slightly cooler due to transpiration

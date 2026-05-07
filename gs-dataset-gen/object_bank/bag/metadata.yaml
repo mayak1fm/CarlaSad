@@ -1,0 +1,48 @@
+name: bag
+class_id: 12
+description: Fabric bag / sack (seed bag, fertilizer bag) — common field debris
+
+canonical_scale:
+  width_m:  0.50
+  depth_m:  0.35
+  height_m: 0.30
+
+anchor_point: base_center
+
+proxy_mesh: proxy/bag_box.obj
+convex_hull: proxy/bag_convex_hull.obj
+oriented_bbox:
+  half_extents: [0.25, 0.175, 0.15]
+  rotation_deg: [0, 0, 0]
+
+support_polygon:
+  type: rectangle
+  half_w: 0.22
+  half_h: 0.16
+
+placement_rules:
+  valid_terrain_classes: [100, 101, 104, 110, 111]
+  invalid_terrain_classes: [102, 103, 108]
+  slope_max_deg: 25
+  float_tolerance_m: 0.03
+  sink_tolerance_m: 0.04
+  min_clearance_m: 0.3
+
+assets:
+  - id: bag_white_01
+    ply: renders/bag_white_01.ply
+    normal_map: normals/bag_white_01.png
+    depth_map: depth/bag_white_01.png
+    alpha_mask: masks/bag_white_01.png
+    views: [front, back, left, right, top_45]
+    scale_variance: 0.10
+  - id: bag_brown_01
+    ply: renders/bag_brown_01.ply
+    normal_map: normals/bag_brown_01.png
+    depth_map: depth/bag_brown_01.png
+    alpha_mask: masks/bag_brown_01.png
+    views: [front, back, left, right]
+    scale_variance: 0.10
+
+emissivity: 0.90
+thermal_temp_offset_k: 3.0   # absorbs heat, slightly warmer than ground

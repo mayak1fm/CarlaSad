@@ -1,5 +1,6 @@
 FROM nvidia/cuda:12.1.0-cudnn8-devel-ubuntu22.04
 
+# Build context: project root
 # CarlaSad GS Synthetic Dataset Generator
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -23,20 +24,12 @@ RUN ln -sf /usr/bin/python3.10 /usr/bin/python3 && \
 
 WORKDIR /workspace/gs-dataset-gen
 
+# PyTorch first (large layer, cache-friendly ordering)
+RUN pip install --no-cache-dir \
+    torch torchvision --index-url https://download.pytorch.org/whl/cu121
+
 COPY gs-dataset-gen/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Gaussian Splatting dependencies
-RUN pip install --no-cache-dir \
-    torch torchvision --index-url https://download.pytorch.org/whl/cu121 && \
-    pip install --no-cache-dir \
-    plyfile \
-    open3d \
-    opencv-python-headless \
-    Pillow \
-    numpy \
-    scipy \
-    trimesh
 
 COPY gs-dataset-gen/ .
 

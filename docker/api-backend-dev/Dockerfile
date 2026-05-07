@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-# CarlaSad Operator API backend
+# Build context: project root
 
 RUN apt-get update && apt-get install -y \
     curl \
@@ -9,7 +9,8 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 COPY api-backend/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+# carla egg is mounted at runtime via carla-python-api volume, not installed here
+RUN grep -v "^carla" requirements.txt | pip install --no-cache-dir -r /dev/stdin
 
 COPY api-backend/ .
 

@@ -1,0 +1,53 @@
+name: machinery
+class_id: 13
+description: Stationary agricultural machinery (seeder, sprayer, harvester attachment)
+
+canonical_scale:
+  width_m:  4.5
+  depth_m:  3.0
+  height_m: 2.8
+
+anchor_point: base_center
+
+proxy_mesh: proxy/machinery_box.obj
+convex_hull: proxy/machinery_convex_hull.obj
+oriented_bbox:
+  half_extents: [2.25, 1.50, 1.40]
+  rotation_deg: [0, 0, 0]
+
+support_polygon:
+  type: rectangle
+  half_w: 2.00
+  half_h: 1.30
+
+placement_rules:
+  valid_terrain_classes: [100, 104, 110, 111]
+  invalid_terrain_classes: [101, 102, 103, 105, 108]
+  slope_max_deg: 8
+  float_tolerance_m: 0.05
+  sink_tolerance_m: 0.08
+  min_clearance_m: 3.0       # large exclusion zone around machinery
+  orientation_locked: false  # can be rotated freely
+
+assets:
+  - id: seeder_green_01
+    ply: renders/seeder_green_01.ply
+    normal_map: normals/seeder_green_01.png
+    depth_map: depth/seeder_green_01.png
+    alpha_mask: masks/seeder_green_01.png
+    views: [front, back, left, right, front_left, front_right]
+    scale_variance: 0.05
+  - id: sprayer_yellow_01
+    ply: renders/sprayer_yellow_01.ply
+    normal_map: normals/sprayer_yellow_01.png
+    depth_map: depth/sprayer_yellow_01.png
+    alpha_mask: masks/sprayer_yellow_01.png
+    views: [front, back, left, right]
+    scale_variance: 0.05
+
+emissivity: 0.85
+thermal_temp_offset_k: 8.0    # metal absorbs and retains heat
+thermal_engine_hot_zone:       # separate hotter zone for engine area
+  offset_xyz: [0.5, 0.0, 0.8]
+  radius_m: 0.6
+  temp_boost_k: 25.0

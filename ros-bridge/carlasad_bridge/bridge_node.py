@@ -172,10 +172,19 @@ class CarlaSadBridgeNode(Node):
             topic = getattr(tc, f"LIDAR_{lidar_name.upper()}")
             self._lidar_pubs[lidar_name] = self.create_publisher(PointCloud2, topic, QOS_SENSOR)
 
-        # Spawn and attach RGB cameras
+        # Attach RGB cameras + LiDARs + GNSS + IMU
         from .sensor_bridge import SensorBridge
         self._sensor_bridge = SensorBridge(self, self._world, self._tractor, bpl)
         self._sensor_bridge.attach_all()
+
+        # Thermal camera + Radar
+        self._sensor_bridge.attach_thermal()
+        self._sensor_bridge.attach_radar()
+
+        # Ground truth cameras
+        from .gt_bridge import GTBridge
+        self._gt_bridge = GTBridge(self, self._world, self._tractor, bpl)
+        self._gt_bridge.attach_all()
 
     # ── Main Tick ──────────────────────────────────────────────────────────
 
@@ -208,6 +217,10 @@ class CarlaSadBridgeNode(Node):
         # Process layer at 1 Hz
         if frame % 20 == 0:
             self._publish_process_layer(stamp)
+
+        # GT objects at 10 Hz
+        if frame % 2 == 0 and hasattr(self, "_gt_bridge"):
+            self._gt_bridge.publish_objects_gt(stamp, getattr(self, "_terrain", None))
 
     # ── Publishers ─────────────────────────────────────────────────────────
 

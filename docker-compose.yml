@@ -18,8 +18,8 @@ services:
   # ── CARLA Runtime ──────────────────────────────────────────────────────
   carla-runtime:
     build:
-      context: docker/carla-runtime
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: docker/carla-runtime/Dockerfile
     image: carlasad/carla-runtime:0.9.15
     container_name: carlasad-carla
     profiles: [runtime, dev, full]
@@ -28,21 +28,14 @@ services:
       DISPLAY: ${DISPLAY:-:0}
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: all
+      HEADLESS: ${HEADLESS:-true}
     ports:
-      - "2000:2000"   # CARLA server
-      - "2001:2001"   # CARLA streaming
-      - "2002:2002"   # CARLA secondary
+      - "2000:2000"
+      - "2001:2001"
+      - "2002:2002"
     volumes:
       - ./maps:/home/carla/CarlaUE4/Content/CarlaSad/Maps:ro
-      - carla-logs:/logs
-    command: >
-      /bin/sh -c "
-        if [ '${HEADLESS:-true}' = 'true' ]; then
-          /bin/bash CarlaUE4.sh -RenderOffScreen -nosound -carla-server -world-port=2000
-        else
-          /bin/bash CarlaUE4.sh -nosound -carla-server -world-port=2000
-        fi
-      "
+      - ./logs:/logs
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "2000"]
       interval: 10s
@@ -51,11 +44,30 @@ services:
       start_period: 60s
     restart: unless-stopped
 
+  # ── CARLA Dev Build (компиляция форка из исходников) ──────────────────
+  carla-dev:
+    build:
+      context: .
+      dockerfile: docker/carla-dev/Dockerfile
+    image: carlasad/carla-dev:latest
+    container_name: carlasad-carla-dev
+    profiles: [carla-build]
+    <<: *gpu
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+      UE4_ROOT: /home/ue4/UnrealEngine
+    volumes:
+      - ./carla-fork:/workspace/carla
+      - carla-build-cache:/workspace/carla/Build
+      - carla-python-api:/carla-python-api
+    working_dir: /workspace/carla
+    command: ["bash", "-c", "echo 'CARLA dev container ready. Run: make CarlaUE4Editor'"]
+
   # ── ROS2 Bridge ────────────────────────────────────────────────────────
   ros2-bridge:
     build:
-      context: docker/ros2-bridge-dev
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: docker/ros2-bridge-dev/Dockerfile
     image: carlasad/ros2-bridge:latest
     container_name: carlasad-bridge
     profiles: [runtime, dev, ros, full]
@@ -68,12 +80,17 @@ services:
     volumes:
       - ./ros-bridge:/workspace/ros-bridge
       - ./maps:/maps:ro
-      - carla-logs:/logs
+      - ./logs:/logs
+      - carla-python-api:/carla-python-api:ro
     network_mode: host
     command: >
       bash -c "
         source /opt/ros/humble/setup.bash &&
-        source /workspace/ros-bridge/install/setup.bash &&
+        if [ -d /carla-python-api ]; then
+          export PYTHONPATH=/carla-python-api:$$PYTHONPATH; fi &&
+        cd /workspace/ros-bridge &&
+        colcon build --symlink-install &&
+        source install/setup.bash &&
         ros2 launch carlasad_bridge bridge.launch.py
       "
     restart: unless-stopped
@@ -81,8 +98,8 @@ services:
   # ── API Backend ────────────────────────────────────────────────────────
   api-backend:
     build:
-      context: docker/api-backend-dev
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: docker/api-backend-dev/Dockerfile
     image: carlasad/api-backend:latest
     container_name: carlasad-api
     profiles: [runtime, dev, api, full]
@@ -92,25 +109,32 @@ services:
       API_PORT: "8080"
       LOG_DIR: /logs
     ports:
-      - "8080:8080"   # REST + WebSocket
-      - "50051:50051" # gRPC
+      - "8080:8080"
+      - "50051:50051"
     volumes:
       - ./api-backend:/app
-      - carla-logs:/logs
+      - ./logs:/logs
       - ./maps:/maps:ro
-    command: uvicorn main:app --host 0.0.0.0 --port 8080
+      - carla-python-api:/carla-python-api:ro
+    command: >
+      bash -c "
+        if ls /carla-python-api/*.egg 2>/dev/null; then
+          export PYTHONPATH=/carla-python-api:$$PYTHONPATH; fi &&
+        uvicorn main:app --host 0.0.0.0 --port 8080
+      "
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 15s
     restart: unless-stopped
 
   # ── Dataset Generator ──────────────────────────────────────────────────
   dataset-gen:
     build:
-      context: docker/dataset-gen-dev
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: docker/dataset-gen-dev/Dockerfile
     image: carlasad/dataset-gen:latest
     container_name: carlasad-dataset-gen
     profiles: [dataset-gen, full]
@@ -127,8 +151,8 @@ services:
   # ── Reconstruction Tools ───────────────────────────────────────────────
   reconstruction:
     build:
-      context: docker/reconstruction-dev
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: docker/reconstruction-dev/Dockerfile
     image: carlasad/reconstruction:latest
     container_name: carlasad-reconstruction
     profiles: [reconstruction]
@@ -140,11 +164,11 @@ services:
     working_dir: /workspace/reconstruction
     command: echo "Reconstruction container ready."
 
-  # ── Tools (replay, tests, etc.) ────────────────────────────────────────
+  # ── Tools (replay, tests, scenario runner) ─────────────────────────────
   tools:
     build:
-      context: docker/tools-dev
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: docker/tools-dev/Dockerfile
     image: carlasad/tools:latest
     container_name: carlasad-tools
     profiles: [tools, replay, full]
@@ -153,20 +177,13 @@ services:
     volumes:
       - ./carla-fork/PythonAPI:/workspace/PythonAPI
       - ./scenarios:/scenarios
-      - carla-logs:/logs
+      - ./logs:/logs
       - ./datasets:/datasets
+      - carla-python-api:/carla-python-api:ro
     working_dir: /workspace
     command: echo "Tools container ready."
 
 volumes:
-  carla-logs:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./logs
+  carla-build-cache:
+  carla-python-api:
   reconstruction-data:
-
-networks:
-  default:
-    name: carlasad-net

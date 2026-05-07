@@ -1,0 +1,20 @@
+{
+  "clip_id": "walk_crossing",
+  "class_name": "person",
+  "description": "Person walking diagonally across the tractor path at ~1.0 m/s",
+  "duration_ms": 6000,
+  "loop": false,
+  "frames": [
+    {"t_ms":    0, "dx": -3.00, "dy":  0.00, "dz": 0.00, "yaw":  70.0},
+    {"t_ms":  600, "dx": -2.66, "dy":  0.57, "dz": 0.00, "yaw":  70.0},
+    {"t_ms": 1200, "dx": -2.31, "dy":  1.13, "dz": 0.00, "yaw":  70.0},
+    {"t_ms": 1800, "dx": -1.97, "dy":  1.70, "dz": 0.00, "yaw":  70.0},
+    {"t_ms": 2400, "dx": -1.63, "dy":  2.26, "dz": 0.00, "yaw":  70.0},
+    {"t_ms": 3000, "dx": -1.29, "dy":  2.82, "dz": 0.00, "yaw":  70.0},
+    {"t_ms": 3600, "dx": -0.94, "dy":  3.39, "dz": 0.00, "yaw":  70.0},
+    {"t_ms": 4200, "dx": -0.60, "dy":  3.95, "dz": 0.00, "yaw":  70.0},
+    {"t_ms": 4800, "dx": -0.26, "dy":  4.52, "dz": 0.00, "yaw":  70.0},
+    {"t_ms": 5400, "dx":  0.09, "dy":  5.08, "dz": 0.00, "yaw":  70.0},
+    {"t_ms": 6000, "dx":  0.43, "dy":  5.65, "dz": 0.00, "yaw":  70.0}
+  ]
+}

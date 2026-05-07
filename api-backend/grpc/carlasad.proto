@@ -1,0 +1,125 @@
+syntax = "proto3";
+package carlasad;
+
+option py_generic_services = true;
+
+// ── Mission ────────────────────────────────────────────────────────────────
+
+message MissionRequest {
+  string map_name             = 1;
+  string world_mode           = 2;  // "editor" | "reconstructed"
+  string route_id             = 3;
+  string work_zone_id         = 4;
+  string logging_mode         = 5;
+  string weather_preset       = 6;
+  string sensor_rig_profile   = 7;
+  int32  seed                 = 8;
+}
+
+message MissionResponse {
+  bool   ok         = 1;
+  string mission_id = 2;
+  string error      = 3;
+}
+
+message MissionStatusResponse {
+  string state            = 1;  // idle|running|paused|completed|error
+  string mission_id       = 2;
+  float  progress         = 3;
+  float  elapsed_seconds  = 4;
+  EgoPose ego_pose        = 5;
+}
+
+// ── World ──────────────────────────────────────────────────────────────────
+
+message WorldLoadRequest {
+  string map_name   = 1;
+  string world_mode = 2;
+}
+
+message WeatherRequest {
+  string preset = 1;
+}
+
+message WorldResponse {
+  bool   ok    = 1;
+  string error = 2;
+}
+
+// ── Simulation ─────────────────────────────────────────────────────────────
+
+message EmptyRequest {}
+
+message SimResponse {
+  bool   ok    = 1;
+  int32  frame = 2;
+  string state = 3;
+  string error = 4;
+}
+
+// ── Recording ─────────────────────────────────────────────────────────────
+
+message RecordingStartRequest {
+  string mode = 1;  // online_debug|dataset_recording|mission_log|...
+}
+
+message RecordingResponse {
+  bool   ok         = 1;
+  string session_id = 2;
+  string error      = 3;
+}
+
+// ── State Streaming ────────────────────────────────────────────────────────
+
+message SimStateUpdate {
+  string state         = 1;
+  string mission_id    = 2;
+  float  progress      = 3;
+  EgoPose ego_pose     = 4;
+  CarlaStatus carla    = 5;
+  float  timestamp     = 6;
+}
+
+// ── Shared Types ───────────────────────────────────────────────────────────
+
+message EgoPose {
+  float x   = 1;
+  float y   = 2;
+  float z   = 3;
+  float yaw = 4;
+  float vx  = 5;
+  float vy  = 6;
+}
+
+message CarlaStatus {
+  bool   connected       = 1;
+  string map             = 2;
+  bool   synchronous     = 3;
+  float  delta           = 4;
+  string weather_preset  = 5;
+}
+
+// ── Service ────────────────────────────────────────────────────────────────
+
+service CarlaSadOperator {
+  // Mission
+  rpc StartMission  (MissionRequest)       returns (MissionResponse);
+  rpc StopMission   (EmptyRequest)         returns (MissionResponse);
+  rpc GetMissionStatus (EmptyRequest)      returns (MissionStatusResponse);
+
+  // World
+  rpc LoadWorld     (WorldLoadRequest)     returns (WorldResponse);
+  rpc SetWeather    (WeatherRequest)       returns (WorldResponse);
+
+  // Simulation
+  rpc PlaySim       (EmptyRequest)         returns (SimResponse);
+  rpc PauseSim      (EmptyRequest)         returns (SimResponse);
+  rpc TickSim       (EmptyRequest)         returns (SimResponse);
+
+  // Recording
+  rpc StartRecording (RecordingStartRequest) returns (RecordingResponse);
+  rpc StopRecording  (EmptyRequest)          returns (RecordingResponse);
+
+  // Streaming state (server-side streaming)
+  rpc StreamState   (EmptyRequest)         returns (stream SimStateUpdate);
+}

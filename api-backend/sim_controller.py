@@ -26,6 +26,8 @@ class SimController:
         self._session_path: Optional[Path] = None
         self._tick_task: Optional[asyncio.Task] = None
         self._state_callbacks: List = []
+        self._passive_tick_task: Optional[asyncio.Task] = None
+        self._passive_tick_running: bool = False
 
     # ── Mission ────────────────────────────────────────────────────────────
 
@@ -91,6 +93,40 @@ class SimController:
             mission.state = "running"
         set_active_mission(mission)
         self._broadcast_event("sim_resumed", {})
+
+    # ── Passive tick mode ──────────────────────────────────────────────────
+    # Used when an external orchestrator drives the simulation step-by-step.
+    # CARLA stays in sync mode; the API backend just echoes state without
+    # advancing the clock itself. The external caller sends POST /api/v1/sim/tick.
+
+    async def enter_passive_tick_mode(self, fixed_delta_seconds: float = 0.05):
+        """
+        Switch CARLA to sync mode without starting an internal tick loop.
+        External orchestrator must call /api/v1/sim/tick to advance.
+        """
+        await carla_client.ensure_connected()
+        carla_client.set_sync_mode(True, fixed_delta_seconds)
+        self._passive_tick_running = True
+        logger.info("Passive tick mode enabled (delta=%.3f s)", fixed_delta_seconds)
+        self._broadcast_event("passive_tick_started", {"delta_seconds": fixed_delta_seconds})
+
+    async def exit_passive_tick_mode(self):
+        self._passive_tick_running = False
+        if carla_client.is_connected():
+            carla_client.set_sync_mode(False)
+        logger.info("Passive tick mode disabled")
+        self._broadcast_event("passive_tick_stopped", {})
+
+    async def tick_once(self) -> dict:
+        """Advance simulation by one tick. Only valid in passive or sync mode."""
+        if not carla_client.is_connected():
+            raise RuntimeError("CARLA not connected")
+        frame_id = carla_client.tick()
+        return {"frame_id": frame_id, "status": "ok"}
+
+    @property
+    def is_passive_tick_mode(self) -> bool:
+        return self._passive_tick_running
 
     # ── Recording ──────────────────────────────────────────────────────────
 

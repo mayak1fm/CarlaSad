@@ -1,0 +1,40 @@
+# Git
+.git
+.github
+
+# Python cache
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.pytest_cache
+
+# Build artifacts
+**/Build/
+**/Intermediate/
+**/Saved/
+**/DerivedDataCache/
+**/*.o
+**/*.a
+**/*.so
+**/*.egg-info/
+
+# Logs and data (mounted as volumes)
+logs/
+datasets/
+maps/reconstructed-worlds/
+reconstruction-data/
+
+# Node / Dart
+**/node_modules/
+**/.dart_tool/
+**/build/
+
+# IDE
+.vscode/
+.idea/
+**/.DS_Store
+
+# Secrets
+.env
+**/.env.local

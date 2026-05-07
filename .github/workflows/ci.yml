@@ -1,0 +1,163 @@
+name: CarlaSad CI
+
+on:
+  push:
+    branches: [main, dev, "feature/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  # ── Python Unit Tests ────────────────────────────────────────────────────
+  test-python:
+    name: Python unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install carlasad package
+        run: pip install numpy pyyaml pytest pytest-asyncio
+        working-directory: carla-fork/PythonAPI/carlasad
+
+      - name: Run layer tests
+        run: pytest tests/ -v --tb=short
+        working-directory: carla-fork/PythonAPI/carlasad
+
+      - name: Install gs-dataset-gen deps
+        run: pip install numpy scipy pillow pyyaml pytest
+        working-directory: gs-dataset-gen
+
+      - name: Run compositor tests
+        run: pytest tests/ -v --tb=short
+        working-directory: gs-dataset-gen
+
+  # ── API Backend Syntax Check ─────────────────────────────────────────────
+  check-api:
+    name: API backend syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install FastAPI deps
+        run: pip install fastapi uvicorn pydantic websockets pyyaml
+
+      - name: Check Python syntax
+        run: python -m py_compile main.py carla_client.py sim_controller.py
+        working-directory: api-backend
+
+      - name: Check router syntax
+        run: |
+          for f in routers/*.py ws/*.py models/*.py; do
+            python -m py_compile $f && echo "OK: $f"
+          done
+        working-directory: api-backend
+
+  # ── Docker Compose Validation ────────────────────────────────────────────
+  validate-compose:
+    name: docker-compose validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate docker-compose.yml
+        run: docker compose config --quiet
+
+      - name: Validate docker-compose.dev.yml
+        run: docker compose -f docker-compose.yml -f docker-compose.dev.yml config --quiet
+
+  # ── Dockerfile Lint ──────────────────────────────────────────────────────
+  lint-dockerfiles:
+    name: Hadolint Dockerfiles
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint all Dockerfiles
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          recursive: true
+          failure-threshold: warning
+          ignore: DL3008,DL3013,DL3042
+
+  # ── ROS2 Message Validation ──────────────────────────────────────────────
+  validate-msgs:
+    name: Validate carlasad_msgs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check .msg files exist and are non-empty
+        run: |
+          for msg in ros-bridge/carlasad_msgs/msg/*.msg; do
+            test -s "$msg" && echo "OK: $msg" || (echo "EMPTY: $msg" && exit 1)
+          done
+
+      - name: Check CMakeLists.txt references all .msg files
+        run: |
+          for msg in ros-bridge/carlasad_msgs/msg/*.msg; do
+            basename="${msg##*/}"
+            grep -q "$basename" ros-bridge/carlasad_msgs/CMakeLists.txt || \
+              (echo "Missing in CMakeLists.txt: $basename" && exit 1)
+          done
+
+  # ── YAML/Config Validation ───────────────────────────────────────────────
+  validate-configs:
+    name: Validate YAML configs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install pyyaml
+        run: pip install pyyaml
+
+      - name: Validate all YAML files
+        run: |
+          python - <<'EOF'
+          import yaml, sys
+          from pathlib import Path
+          errors = []
+          for p in Path(".").rglob("*.yaml"):
+            if ".git" in str(p):
+              continue
+            try:
+              yaml.safe_load(p.read_text())
+              print(f"OK: {p}")
+            except yaml.YAMLError as e:
+              errors.append(f"FAIL {p}: {e}")
+              print(f"FAIL: {p}: {e}")
+          if errors:
+            sys.exit(1)
+          EOF
+
+  # ── Scenario Syntax ──────────────────────────────────────────────────────
+  check-scenarios:
+    name: Scenario scripts syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Check scenario syntax
+        run: |
+          pip install numpy pyyaml
+          for f in scenarios/scripts/*.py; do
+            python -m py_compile $f && echo "OK: $f"
+          done

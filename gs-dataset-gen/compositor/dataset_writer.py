@@ -50,15 +50,43 @@ class DatasetWriter:
         (self._dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
 
     def _save_image(self, path: Path, data):
-        if data is None:
-            path.touch()
+        if data is None or not hasattr(data, "shape"):
             return
-        # TODO: save numpy array as PNG using PIL
-        path.touch()
+        arr = data
+        try:
+            from PIL import Image
+            if arr.dtype != "uint8":
+                arr = arr.astype("uint8")
+            if arr.ndim == 2:
+                Image.fromarray(arr, mode="L").save(str(path))
+            elif arr.shape[2] == 4:
+                Image.fromarray(arr, mode="RGBA").save(str(path))
+            else:
+                Image.fromarray(arr, mode="RGB").save(str(path))
+            return
+        except ImportError:
+            pass
+        try:
+            import cv2
+            cv2.imwrite(str(path), arr)
+        except ImportError:
+            path.write_bytes(arr.astype("uint8").tobytes())
 
     def _save_exr(self, path: Path, data):
-        if data is None:
-            path.touch()
+        if data is None or not hasattr(data, "shape"):
             return
-        # TODO: save depth as EXR using OpenEXR or imageio
-        path.touch()
+        arr = data.astype("float32")
+        try:
+            import imageio
+            imageio.imwrite(str(path), arr)
+            return
+        except ImportError:
+            pass
+        # Fallback: 16-bit PNG (depth in mm, clamped to 65535)
+        png_path = path.with_suffix(".png")
+        depth_mm = (arr * 1000.0).clip(0, 65535).astype("uint16")
+        try:
+            import cv2
+            cv2.imwrite(str(png_path), depth_mm)
+        except ImportError:
+            pass

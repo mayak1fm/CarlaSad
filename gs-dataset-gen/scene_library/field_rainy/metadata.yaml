@@ -1,0 +1,49 @@
+name: field_rainy
+description: Normal field in active rain — reduced visibility, wet reflections
+terrain_class: normal_field
+semantic_id: 100
+
+weather_preset: HardRain
+lighting:
+  sun_elevation_deg: 0.0     # overcast, no direct sun
+  sun_azimuth_deg: 180.0
+  sun_intensity: 0.0
+  ambient_intensity: 0.7
+  sky_luminance: 0.6
+  color_temperature_k: 6800
+
+terrain:
+  surface_type: wet_soil
+  roughness: 0.20
+  moisture: 0.85
+  albedo_mean: [0.12, 0.15, 0.09]
+  specular_boost: 0.4        # wet specular highlights
+  normal_variation: 0.05
+
+background_splat: splats/field_rainy.ply
+
+placement_bounds:
+  x_min: -20.0
+  x_max:  20.0
+  y_min:   5.0
+  y_max:  25.0
+  z_ref:   0.0
+
+valid_object_classes:
+  - person
+  - tractor
+  - pole
+  - machinery
+
+placement_rules:
+  min_object_spacing: 4.0
+  avoid_terrain_classes: [102, 103]
+  z_snap: heightmap
+  occlusion_policy: partial_ok
+
+augmentation:
+  hflip_prob: 0.5
+  rotation_deg_range: [-15, 15]
+  scale_jitter: 0.10
+  rain_streak_aug: true       # add rain streaks in post
+  fog_density_range: [0.05, 0.25]
