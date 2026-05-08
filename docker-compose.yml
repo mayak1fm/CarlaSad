@@ -13,6 +13,15 @@ x-gpu: &gpu
             count: 1
             capabilities: [gpu]
 
+# AMD GPU device mounts (used by carla-runtime on AMD systems)
+# group_add uses numeric GIDs so they work inside containers without matching /etc/group
+x-amd-gpu: &amd-gpu
+  devices:
+    - /dev/dri:/dev/dri
+  group_add:
+    - "44"   # video
+    - "992"  # render
+
 services:
 
   # ── CARLA Runtime ──────────────────────────────────────────────────────
@@ -23,12 +32,15 @@ services:
     image: carlasad/carla-runtime:0.9.15
     container_name: carlasad-carla
     profiles: [runtime, dev, full]
-    <<: *gpu
+    # GPU: set GPU_MODE=nvidia (default) or GPU_MODE=amd in .env
+    # For AMD: uses x-amd-gpu devices; nvidia deploy section is ignored on AMD hosts
+    <<: *amd-gpu
     environment:
       DISPLAY: ${DISPLAY:-:0}
-      NVIDIA_VISIBLE_DEVICES: all
-      NVIDIA_DRIVER_CAPABILITIES: all
       HEADLESS: ${HEADLESS:-true}
+      # -nullrhi disables GPU rendering — lets CARLA server run on any hardware
+      # Set CARLA_NULLRHI=false to enable rendering (requires compatible GPU + VRAM)
+      CARLA_NULLRHI: ${CARLA_NULLRHI:-true}
     ports:
       - "2000:2000"
       - "2001:2001"
@@ -36,6 +48,8 @@ services:
     volumes:
       - ./maps:/home/carla/CarlaUE4/Content/CarlaSad/Maps:ro
       - ./logs:/logs
+      # X11 socket for display when HEADLESS=false
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "2000"]
       interval: 10s
