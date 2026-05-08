@@ -5,6 +5,13 @@ HEADLESS=${HEADLESS:-true}
 WORLD_PORT=${WORLD_PORT:-2000}
 CARLA_NULLRHI=${CARLA_NULLRHI:-true}
 
+# Force Mesa RADV — use first available radeon ICD (name differs: Ubuntu 18 uses x86_64 suffix, 24 does not)
+_RADV_ICD=$(ls /usr/share/vulkan/icd.d/radeon_icd*.json 2>/dev/null | head -1)
+if [ -n "$_RADV_ICD" ]; then
+    export VK_ICD_FILENAMES=$_RADV_ICD
+    echo "[CarlaSad] Vulkan ICD: $VK_ICD_FILENAMES"
+fi
+
 # Export carla Python egg to shared volume for other containers
 if [ -d /carla-python-api ]; then
     find /home/carla/PythonAPI -name "carla-*.egg" -exec cp -n {} /carla-python-api/ \; 2>/dev/null || true
@@ -35,4 +42,4 @@ if [ "$CARLA_NULLRHI" = "true" ]; then
 fi
 
 echo "[CarlaSad] Starting: CarlaUE4.sh $ARGS"
-exec /bin/bash /home/carla/CarlaUE4/CarlaUE4.sh $ARGS
+exec /bin/bash /home/carla/CarlaUE4.sh $ARGS
